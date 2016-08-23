@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script>
+		var CCAURL = 'http://ns7.askia.com:80/ccawebapi/'
+		var DEFAULT_AJAX_PARAMS
+		
+		window.onload=function(){
+			$('#doc').html(CCAURL);
+			$('#doc').attr("href", CCAURL);
+			$.post(CCAURL+'session', {username: 'Supervisor', password: 'Supervisor', module: 'RecordingManagementTool'}, function( data ) {
+				token = data.Response.Token;
+				DEFAULT_AJAX_PARAMS = {
+					url:CCAURL,
+					headers: {'Authorization': 'Basic ' + token},
+					beforeSend:function(xhr){
+						$('#loading').html('Loading...');
+						$('#result').html('');
+					},
+					success: function(data){
+					  $('#loading').html('');
+					  data.Response.forEach(function(survey){
+						$('#result').append('<li>' + survey.Name + '</li>');
+					  });
+					},
+				};
+			})
+			
+			
+		}
+      
+	  function CCAWebAPI(typeOfCall, params){
+		params.url = CCAURL+typeOfCall;
+		$.ajax(params);
+		
+		};
+		
+    </script>
+	<style>
+		#resultcontainer{
+			border:1px solid black;
+		}
+		button{
+		margin: 5px 0 5px 0;
+		}
+	</style>
+  
+  </head>
+  <body>
+    
+	<h1>Example 1 : Using HTTP GET with CCAWebAPI</h1>
+	<h2>Documentation about this API can be found at <a id="doc" href=""></a></h2>
+	
+	<button onclick="CCAWebAPI('SurveyTasks',DEFAULT_AJAX_PARAMS)">Available surveys</button>
+	<button onclick="CCAWebAPI('Agents',DEFAULT_AJAX_PARAMS)">Available agents</button>
+	<button onclick="CCAWebAPI('Lists',DEFAULT_AJAX_PARAMS)">Available Lists</button>
+	<button onclick="CCAWebAPI('GeneralSettings',DEFAULT_AJAX_PARAMS)">CCA Settings</button>
+	<button onclick="CCAWebAPI('Groups',DEFAULT_AJAX_PARAMS)">Groups</button>
+	<button onclick="CCAWebAPI('OutboundGroups',DEFAULT_AJAX_PARAMS)">OutboundGroups</button>
+	<button onclick="CCAWebAPI('WebConnections',DEFAULT_AJAX_PARAMS)">Web Connections</button>
+	
+    <div id="resultcontainer">
+		<div id="loading"></div>
+		<ul id="result"></ul>
+	</div>
+    
+    
+	
+  </body>
+</html>
