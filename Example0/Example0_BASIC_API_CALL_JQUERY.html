@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <body>
+    Available surveys:
+    <div id= "loading">Loading...</div>
+	<ul id="result"></ul>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>
+
+      $(document).ready(function(){
+        $.post( 'http://ns7.askia.com:80/ccawebapi/session', {username: 'Supervisor', password: 'Supervisor', module: 'RecordingManagementTool'}, function( data ) {
+
+          var token = data.Response.Token;
+
+          $.ajax({
+            url: 'http://ns7.askia.com:80/ccawebapi/SurveyTasks',
+            headers: {'Authorization': 'Basic ' + token},
+            beforeSend:function(){
+						$('#loading').html('Loading...');
+						$('#result').html('');
+					},
+			success: function(data){
+              $('#loading').html('Loading...');
+			  data.Response.forEach(function(survey){
+                $('#result').append('<li>' + survey.Name + '</li>');
+              });
+            }
+          });
+        });
+      });
+
+    </script>
+  </body>
+</html>

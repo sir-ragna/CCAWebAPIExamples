@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <script>
+
+  
+	function buildFormBody(obj) {
+		var form = [];
+		for (var key in obj) {
+			if (obj.hasOwnProperty(key)) {
+				form.push(encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]));
+			}
+		}
+		return form.join("&");
+	}
+	
+    function request0(){
+	var token;
+	
+	fetch( 'http://ns7.askia.com:80/ccawebapi/session', {
+		method:'post',
+		headers:{
+			"Content-Type": "application/x-www-form-urlencoded"
+		},
+		body: buildFormBody({ 
+			username : "Supervisor",
+			password : "Supervisor",
+			module   : "RecordingManagementTool",
+		})
+	})
+	.then(function( response ) {
+		return response.json().then(function(json){
+			token=json.Response.Token;
+			getSurveys();
+		});
+		
+	});
+
+		
+		function getSurveys(){
+			fetch('http://ns7.askia.com:80/ccawebapi/SurveyTasks',
+				{
+				url: 'http://ns7.askia.com:80/ccawebapi/SurveyTasks',
+				headers: {'Authorization': 'Basic ' + token}
+				}
+			)
+			.then(function(response){
+				return response.json().then(function(json){
+					for (i = 0; i< json.Response.length; i++){
+						console.log(json.Response[i]);
+						$('#result').append('<li>' + json.Response[i].Name + '</li>');
+					}
+				})
+			})
+       }
+
+	}
+
+
+	/*
+	fetch( 'http://ns7.askia.com:80/ccawebapi/session', {username: 'Supervisor', password: 'Supervisor', module: 'RecordingManagementTool'})
+		.then(function( data ) {
+			token = data.Response.Token;
+			getSurveys();
+		})
+
+	$.post( 'http://ns7.askia.com:80/ccawebapi/session', {username: 'Supervisor', password: 'Supervisor', module: 'RecordingManagementTool'}, function( data ) {
+			token = data.Response.Token;
+			getSurveys();
+		})
+
+
+
+
+		var creds = {username: 'Supervisor', password: 'Supervisor'};
+
+	var data = new FormData();
+		data.append( "json", JSON.stringify( creds ) );
+
+
+		fetch('http://ns7.askia.com:80/ccawebapi/session',{
+			body: data,
+			method:'post',
+			headers: {
+				"Content-type": "application/json; charset=UTF-8"
+			},
+		})
+		.then(function(response) {
+			return response.json().then(function(json) {
+					console.log(json);
+			});
+		});
+
+	}
+
+
+
+	*/
+    </script>
+	</head>
+
+  <body onload="request0()">
+    Available surveys:
+    <ul id="result"></ul>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+  </body>
+</html>
