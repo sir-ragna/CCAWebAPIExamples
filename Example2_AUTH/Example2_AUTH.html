@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+   <link href='normalize.css' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+   <style>
+		#resultcontainer{
+			border:1px solid black;
+		}
+		button, input{
+		margin: 5px 0 5px 0;
+		}
+	</style>
+  
+  
+  <script>
+	var CCAURL = 'http://ns7.askia.com:80/ccawebapi/'
+	
+	//this function is a helper to convert a JSON object into a Form data, so that its treated as Form Data in the HTTP POST, rather than Payload.
+	function buildFormBody(obj) {
+		var form = [];
+		for (var key in obj) {
+			if (obj.hasOwnProperty(key)) {
+				form.push(encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]));
+			}
+		}
+		return form.join("&");
+	}
+	
+	function init(){
+		document.getElementById('doc').innerHTML = CCAURL;
+		document.getElementById('doc').setAttribute("href",CCAURL);
+	}
+	
+	function authenticate(){
+		var token;
+		var uid = document.getElementById('UID').value;
+		var pass = document.getElementById('pass').value;
+		fetch( CCAURL + '/session', {
+			method:'post',
+			headers:{
+				"Content-Type": "application/x-www-form-urlencoded"
+			},
+			body: buildFormBody({ 
+				username : uid,
+				password : pass,
+				module   : "RecordingManagementTool",
+			})
+		})
+		.then(function( response ) {
+			if(response.ok){
+				return response.json().then(function(json){
+					token=json.Response.Token;
+					//further proceed with Token
+					document.getElementById('result').innerHTML = "Status : " + response.status + "<br>" + "Status text : " + response.statusText + "<br>" + "Current Authenticity token : " + token;
+				});
+			}
+			else{
+				document.getElementById('result').innerHTML = "Status : " + response.status + "<br>" + "Status text : " + response.statusText;
+			}
+		});
+	}
+
+    </script>
+	</head>
+
+  <body onload="init()">
+	<h1>Example 2 : Authentication with CCAWebAPI</h1>
+	<h2>Documentation about this API can be found at <a id="doc" href=""></a></h2>
+	<form>
+		<input type="text" id="UID" placeholder="login"/>
+		<input type="password" id="pass" placeholder="password"/>
+		<input type="button" value="Sign in" onclick="authenticate()"/>
+	</form>
+	</head>
+    Results : 
+	<div id="resultcontainer">
+		<div id="loading"></div>
+		<ul id="result"></ul>
+	</div>
+
+  </body>
+</html>
