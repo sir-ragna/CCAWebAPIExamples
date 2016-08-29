@@ -1,33 +1,21 @@
 <!DOCTYPE html>
 <html>
   <head>
-   <link href='normalize.css' rel='stylesheet' type='text/css'>
+   <link href='bootstrap.min.css' rel='stylesheet' type='text/css'>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
-   <style>
-		#resultcontainer{
-			border:1px solid black;
-		}
-		button, input{
-		margin: 5px 0 5px 0;
-		}
+   <style>		
+		.agent-container { width: 800px; display: block; margin-left: auto; margin-right: auto;}
+		.control-container { width: 800px; display: block; margin-left: auto; margin-right: auto;}
+		#fetch-agent-issue { display: none; }
+		.btn { margin: 3px; }
 	</style>
   
   
   <script>
 	var CCAURL = 'http://ns7.askia.com:80/ccawebapi/';
 	var token;
-	
-	//this function is a helper to convert a JSON object into a Form data, so that its treated as Form Data in the HTTP POST, rather than Payload.
-	function buildFormBody(obj) {
-		var form = [];
-		for (var key in obj) {
-			if (obj.hasOwnProperty(key)) {
-				form.push(encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]));
-			}
-		}
-		return form.join("&");
-	}
-	
+	var defaultAgentObj;
+		
 	function init(){
 		document.getElementById('doc').innerHTML = CCAURL;
 		document.getElementById('doc').setAttribute("href",CCAURL);
@@ -35,12 +23,12 @@
 	}
 	
 	function authenticate(){
-		fetch( CCAURL + '/session', {
+		fetch( CCAURL + 'session', {
 			method:'post',
 			headers:{
-				"Content-Type": "application/x-www-form-urlencoded"
+				"Content-Type": "text/json"
 			},
-			body: buildFormBody({ 
+			body: JSON.stringify({ 
 				username : "Supervisor",
 				password : "Supervisor",
 				module   : "RecordingManagementTool",
@@ -56,38 +44,64 @@
 				});
 			}
 			else{
-				document.getElementById('result').innerHTML = "Status : " + response.status + "<br>" + "Status text : " + response.statusText;
+				//document.getElementById('result').innerHTML = "Status : " + response.status + "<br>" + "Status text : " + response.statusText;
 			}
 		});
 	}
 
     function getAgentJSON(){
-		fetch('http://ns7.askia.com:80/ccawebapi/Agents/1',
+		fetch('http://ns7.askia.com:80/ccawebapi/Agents/0',
 			{
 			headers: {'Authorization': 'Basic ' + token}
 			}
 		)
 		.then(function(response){
 			return response.json().then(function(json){
-				document.getElementById('result').innerHTML = JSON.stringify(json.Response);
+				if (json.StatusCode === 200) {
+					document.getElementById("fetch-agent-issue").style["display"] = 'none';
+					defaultAgentObj = json.Response;
+					
+					['UserName', 'Name', 'LastName'].forEach(function(element){
+						document.getElementById('input' + element).value = json.Response[element];
+					});
+					
+					document.getElementById('RecordAllCalls').checked = json.Response['RecordAllCalls'];
+					document.getElementById('RecordAllCallsInStereo').checked = json.Response['RecordAllCallsInStereo'];
+					
+				} else {
+					// Show the user a Warning that something went wrong with the API
+					document.getElementById("fetch-agent-issue").style["display"] = 'block';
+					document.getElementById("fetch-agent-issue").innerHTML('Something went wrong fetching the default agent')
+				}
 			})
 		})
    }
    
    function setAgentJSON(){
+		var newAgent = defaultAgentObj;
+		newAgent['UserName'] = document.getElementById('input' + 'UserName').value;
+		newAgent['Name'] = document.getElementById('input' + 'Name').value;
+		newAgent['LastName'] = document.getElementById('input' + 'LastName').value;
+		newAgent['RecordAllCalls'] = document.getElementById('RecordAllCalls').checked;
+		newAgent['RecordAllCallsInStereo'] = document.getElementById('RecordAllCallsInStereo').checked;
+		
 		fetch('http://ns7.askia.com:80/ccawebapi/Agents',
 		{
 			headers: 
 			{
 				'Authorization': 'Basic ' + token,
-				"Content-Type": "application/x-www-form-urlencoded"
+				"Content-Type": "text/json"
 			},
 			method:'post',
-			body: buildFormBody({"Address1":"","Address2":"","AlarmSettings":{"ClericalTime":{"Enabled":false,"Threshold":0},"EnteringNumberTime":{"Enabled":false,"Threshold":0},"ParkedTime":{"Enabled":false,"Threshold":0},"PauseTimes":{},"PausedTime":{"Enabled":false,"Threshold":0},"ReadyTime":{"Enabled":false,"Threshold":0},"RingingTime":{"Enabled":false,"Threshold":0},"SelectingTime":{"Enabled":false,"Threshold":0},"SpeakingTime":{"Enabled":false,"Threshold":0}},"Broker":"","CoverageRouteId":-1,"EmailAddress":"","FirstName":"","LastName":"Administrator01","MaxNumberOfSimultaneousContacts":5,"Memberships":{"CapiGroups":[],"CodingGroups":[],"InboundGroups":[],"OutboundGroupId":-1},"NTAccount":"","ObjectState":{"AgentState":{"AvailableForKeyIn":false,"AvailableForOutbound":false,"AverageWaitingTime":0,"CurrentPauseId":0,"Duty":0,"IPAddress":"","LocationId":-1,"LogOnTime":"0001-01-01T00:00:00","MaxWaitingTime":0,"MinWaitingTime":0,"StartWaitingTime":"0001-01-01T00:00:00","StatusChangeTime":"0001-01-01T00:00:00","StatusId":0},"SupervisorState":{"HostName":"","IPAddress":"","LocationId":-1,"StatusId":0}},"RecordAllCalls":false,"RecordAllCallsInStereo":false,"RestrictionId":1,"Skills":[{"SkillId":2,"Value":0},{"SkillId":1,"Value":0},{"SkillId":3,"Value":0}],"SoftPhoneTraceEnabled":false,"UserName":"Administrator01","CcaObjectType":2,"DefaultId":0,"DateCreated":"2016-04-15T10:08:29","DateModified":"2016-05-10T14:59:57","Description":"","Id":1,"Name":"Administrator01"})
+			body: JSON.stringify(newAgent)
 		})
 		.then(function(response){
 			return response.json().then(function(json){
-				document.getElementById('result').innerHTML = JSON.stringify(json.Response);
+				if (json.StatusCode === 200) {
+					console.log("Agent created")
+				} else {
+					console.error("Could not create Agent");
+				}
 				console.log(json);
 			})
 		})
@@ -97,17 +111,48 @@
 	</head>
 
   <body onload="init()">
+	<div class="well control-container">
+	<div class="alert alert-error" id="fetch-agent-issue">Something went wrong fetching the default agent</div>
 	<h1>Example 3 : Creation</h1>
-	<h2>Documentation about this API can be found at <a id="doc" href=""></a></h2>
-	<input type="button" value="Get" onclick="getAgentJSON()"/>
-	<input type="button" value="Post" onclick="setAgentJSON()"/>
-	
-	</head>
-    Results : 
-	<div id="resultcontainer">
-		<div id="loading"></div>
-		<ul id="result"></ul>
+	<h2>Documentation about this API can be found at: <a id="doc" href=""></a></h2>
+	<input type="button" class="btn" value="Get Agent/0 - Load Default Agent" onclick="getAgentJSON()"/>
+	<br>
+	<input type="button" class="btn" value="Post - Create New Agent" onclick="setAgentJSON()"/>
 	</div>
 
+	<div class="well agent-container">
+		<div class="form-horizontal">
+		  <div class="control-group">
+			<label class="control-label" for="inputUserName">UserName</label>
+			<div class="controls">
+			  <input type="text" id="inputUserName" placeholder="User Name">
+			</div>
+		  </div>
+		  <div class="control-group">
+			<label class="control-label" for="inputName">Surname</label>
+			<div class="controls">
+			  <input type="text" id="inputName" placeholder="Surname">
+			</div>
+		  </div>
+		  <div class="control-group">
+			<label class="control-label" for="inputLastName">Name</label>
+			<div class="controls">
+			  <input type="text" id="inputLastName" placeholder="Name">
+			</div>
+		  </div>
+		  
+		  <div class="control-group">
+			<div class="controls">
+			  <label class="checkbox">
+				<input type="checkbox" id="RecordAllCalls" checked="true">Record Conversations
+			  </label>
+			  <label class="checkbox">
+				<input type="checkbox" id="RecordAllCallsInStereo" checked="true">Record Conversations in Stereo
+			  </label>
+			  <button onclick="setAgentJSON()" class="btn">Create Agent</button>
+			</div>
+		  </div>
+		</div>
+	</div>
   </body>
 </html>
