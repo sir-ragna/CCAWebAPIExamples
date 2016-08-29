@@ -9,13 +9,26 @@
 		#fetch-agent-issue { display: none; }
 		.btn { margin: 3px; }
 	</style>
-  
+  <script>
+	 // First, checks if it isn't implemented yet.
+	if (!String.prototype.format) {
+	  String.prototype.format = function() {
+		var args = arguments;
+		return this.replace(/{(\d+)}/g, function(match, number) { 
+		  return typeof args[number] != 'undefined'
+			? args[number]
+			: match
+		  ;
+		});
+	  };
+	}
+  </script>
   
   <script>
 	var CCAURL = 'http://ns7.askia.com:80/ccawebapi/';
 	var token;
 	var defaultAgentObj;
-		
+	
 	function init(){
 		document.getElementById('doc').innerHTML = CCAURL;
 		document.getElementById('doc').setAttribute("href",CCAURL);
@@ -61,12 +74,25 @@
 					document.getElementById("fetch-agent-issue").style["display"] = 'none';
 					defaultAgentObj = json.Response;
 					
-					['UserName', 'Name', 'LastName'].forEach(function(element){
-						document.getElementById('input' + element).value = json.Response[element];
-					});
 					
-					document.getElementById('RecordAllCalls').checked = json.Response['RecordAllCalls'];
-					document.getElementById('RecordAllCallsInStereo').checked = json.Response['RecordAllCallsInStereo'];
+					// Generate form HTML based upon the JSON object received
+					var strControlTemplate = '\n\t\t<div class="control-group">\n\t\t\t<label class="control-label" for="input{0}">{0}</label>\n\t\t\t<div class="controls">\n\t\t\t<input type="text" id="input{0}" placeholder="{1}" value="{1}">\n\t\t\t</div>\n\t\t</div>\n';
+					var boolControlTemplate = '\n\t\t<div class="control-group">\n\t\t<div class="controls">\n\t\t<label class="checkbox">\n\t\t\t<input type="checkbox" id="checkbox{0}" checked="{1}">{0}\n\t\t</label>\n\t\t</div>\n\t\t</div>\n';
+					var generatedHTML = "";
+					for (var key in defaultAgentObj) {
+						if (defaultAgentObj.hasOwnProperty(key)) {
+							var value = defaultAgentObj[key];
+							if (typeof value === 'string') {
+								// input types for strings
+								generatedHTML += strControlTemplate.format(key, value);
+							}
+							if (typeof value === 'boolean') {
+								// checkboxes for booleans
+								generatedHTML += boolControlTemplate.format(key, '' + value);
+							}
+						}
+					}
+					document.getElementById('agent-form').innerHTML = generatedHTML;
 					
 				} else {
 					// Show the user a Warning that something went wrong with the API
@@ -79,11 +105,19 @@
    
    function setAgentJSON(){
 		var newAgent = defaultAgentObj;
-		newAgent['UserName'] = document.getElementById('input' + 'UserName').value;
-		newAgent['Name'] = document.getElementById('input' + 'Name').value;
-		newAgent['LastName'] = document.getElementById('input' + 'LastName').value;
-		newAgent['RecordAllCalls'] = document.getElementById('RecordAllCalls').checked;
-		newAgent['RecordAllCallsInStereo'] = document.getElementById('RecordAllCallsInStereo').checked;
+		
+		for (var key in defaultAgentObj) {
+			if (defaultAgentObj.hasOwnProperty(key)) {
+				var value = defaultAgentObj[key];
+				if (typeof value === 'string') {
+					newAgent[key] = document.getElementById('input' + key).value;
+				}
+				if (typeof value === 'boolean') {
+					// convert string to boolean
+					newAgent[key] = document.getElementById('checkbox' + key).checked;
+				}
+			}
+		}
 		
 		fetch('http://ns7.askia.com:80/ccawebapi/Agents',
 		{
@@ -121,37 +155,8 @@
 	</div>
 
 	<div class="well agent-container">
-		<div class="form-horizontal">
-		  <div class="control-group">
-			<label class="control-label" for="inputUserName">UserName</label>
-			<div class="controls">
-			  <input type="text" id="inputUserName" placeholder="User Name">
-			</div>
-		  </div>
-		  <div class="control-group">
-			<label class="control-label" for="inputName">Surname</label>
-			<div class="controls">
-			  <input type="text" id="inputName" placeholder="Surname">
-			</div>
-		  </div>
-		  <div class="control-group">
-			<label class="control-label" for="inputLastName">Name</label>
-			<div class="controls">
-			  <input type="text" id="inputLastName" placeholder="Name">
-			</div>
-		  </div>
-		  
-		  <div class="control-group">
-			<div class="controls">
-			  <label class="checkbox">
-				<input type="checkbox" id="RecordAllCalls" checked="true">Record Conversations
-			  </label>
-			  <label class="checkbox">
-				<input type="checkbox" id="RecordAllCallsInStereo" checked="true">Record Conversations in Stereo
-			  </label>
-			  <button onclick="setAgentJSON()" class="btn">Create Agent</button>
-			</div>
-		  </div>
+		<div class="form-horizontal" id="agent-form">
+
 		</div>
 	</div>
   </body>
