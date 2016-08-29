@@ -7,6 +7,7 @@
 		.agent-container { width: 800px; display: block; margin-left: auto; margin-right: auto;}
 		.control-container { width: 800px; display: block; margin-left: auto; margin-right: auto;}
 		#fetch-agent-issue { display: none; }
+		.btn { margin: 3px; }
 	</style>
   
   
@@ -14,19 +15,7 @@
 	var CCAURL = 'http://ns7.askia.com:80/ccawebapi/';
 	var token;
 	var defaultAgentObj;
-	
-	//this function is a helper to convert a JSON object into a Form data, so that its treated as Form Data in the HTTP POST, rather than Payload.
-	function buildFormBody(obj) {
-		var form = [];
-		for (var key in obj) {
-			if (obj.hasOwnProperty(key)) {
-				if (typeof obj[key])
-				form.push(encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]));
-			}
-		}
-		return form.join("&");
-	}
-	
+		
 	function init(){
 		document.getElementById('doc').innerHTML = CCAURL;
 		document.getElementById('doc').setAttribute("href",CCAURL);
@@ -82,6 +71,7 @@
 				} else {
 					// Show the user a Warning that something went wrong with the API
 					document.getElementById("fetch-agent-issue").style["display"] = 'block';
+					document.getElementById("fetch-agent-issue").innerHTML('Something went wrong fetching the default agent')
 				}
 			})
 		})
@@ -126,7 +116,7 @@
 	<h1>Example 3 : Creation</h1>
 	<h2>Documentation about this API can be found at: <a id="doc" href=""></a></h2>
 	<input type="button" class="btn" value="Get Agent/0 - Load Default Agent" onclick="getAgentJSON()"/>
-	<br />
+	<br>
 	<input type="button" class="btn" value="Post - Create New Agent" onclick="setAgentJSON()"/>
 	</div>
 
@@ -159,7 +149,7 @@
 			  <label class="checkbox">
 				<input type="checkbox" id="RecordAllCallsInStereo" checked="true">Record Conversations in Stereo
 			  </label>
-			  <button onclick="setAgentJSON()" class="btn">Create Users</button>
+			  <button onclick="setAgentJSON()" class="btn">Create Agent</button>
 			</div>
 		  </div>
 		</div>
