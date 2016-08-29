@@ -63,7 +63,7 @@
 	}
 
     function getAgentJSON(){
-		fetch('http://ns7.askia.com:80/ccawebapi/Agents/0',
+		fetch(CCAURL+'Agents/0',
 			{
 			headers: {'Authorization': 'Basic ' + token}
 			}
@@ -119,7 +119,7 @@
 			}
 		}
 		
-		fetch('http://ns7.askia.com:80/ccawebapi/Agents',
+		fetch(CCAURL+'Agents',
 		{
 			headers: 
 			{
