@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<!-- Removed JQuery but added bootstrap. We have to do something to keep this webpage bloated. :-) -->
+    <link href='bootstrap.min.css' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+    
+  <script>
+		var CCAURL = 'http://ns7.askia.com:80/ccawebapi/';
+		var TOKEN;
+		
+		window.onload=(function(){
+			var doclink = document.getElementById('doc')
+			doclink.innerHTML = CCAURL;
+			doclink.href = CCAURL;
+			fetch( CCAURL + 'session', {
+				method:'post',
+				headers:{ "Content-Type": "text/json" },
+				body: JSON.stringify({ 
+					username : "Supervisor",
+					password : "Supervisor",
+					module   : "RecordingManagementTool",
+				})
+			}).then(function( response ) {
+				if(response.ok){
+					return response.json().then(function(json){
+						TOKEN=json.Response.Token;
+						console.log(json);
+						});
+				} else {
+					console.error("JSON Response NOK");
+				}
+			});
+		});
+		
+		function CCAWebAPI(typeOfCall){
+			var loading = document.getElementById('loading');
+			loading.innerHTML = "Loading...";
+			fetch(CCAURL + typeOfCall,	{headers: {'Authorization': 'Basic ' + TOKEN}}
+				).then(function(response){
+					return response.json().then(function(json){
+						if (json.StatusCode === 200) {
+							// Everything is good :-)
+							loading.innerHTML = "";
+
+							// TODO Create a nice table that shows more properties than just the name.
+							//      Or otherwise create links that let the user see more details about a particular object.
+							var lst = '<ul>';
+							lst += json.Response.reduce(function(Prev, Curr) {
+								return Prev + '<li>' + Curr.Name + '</li>\n';
+							}, '');
+							lst += '</ul>';
+							document.getElementById('result').innerHTML = lst;
+						} else {
+							console.error("CCAWebAPI JSON Request failed");
+							loading.innerHTML = "Failed to load the requeste data";
+						}
+					});
+				});
+		}
+    </script>
+	<style>
+		#resultcontainer{
+			display: block;
+			max-width: 960px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		button{
+		margin: 5px 3px 5px 3px;
+		}
+		.header {			
+			display: block;
+			max-width: 960px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+	</style>
+  
+  </head>
+  <body>
+    <div class="well header">
+	<h1>Example 1 : Using HTTP GET with CCAWebAPI</h1>
+	<h2>Documentation about this API can be found at: <a id="doc" href=""></a></h2>
+	
+	<button class="btn" onclick="CCAWebAPI('SurveyTasks')">Available surveys</button>
+	<button class="btn" onclick="CCAWebAPI('Agents')">Available agents</button>
+	<button class="btn" onclick="CCAWebAPI('Lists')">Available Lists</button>
+	<button class="btn" onclick="CCAWebAPI('GeneralSettings')">CCA Settings</button>
+	<button class="btn" onclick="CCAWebAPI('Groups')">Groups</button>
+	<button class="btn" onclick="CCAWebAPI('OutboundGroups')">OutboundGroups</button>
+	<button class="btn" onclick="CCAWebAPI('WebConnections')">Web Connections</button>
+	</div>
+    <div class="well" id="resultcontainer">
+		<div id="loading"></div>
+		<ul id="result"></ul>
+	</div>
+    
+    
+	
+  </body>
+</html>
