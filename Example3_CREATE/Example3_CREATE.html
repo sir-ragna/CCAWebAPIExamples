@@ -110,11 +110,11 @@
 			if (defaultAgentObj.hasOwnProperty(key)) {
 				var value = defaultAgentObj[key];
 				if (typeof value === 'string') {
-					newAgent[value] = document.getElementById('input' + key).value;
+					newAgent[key] = document.getElementById('input' + key).value;
 				}
 				if (typeof value === 'boolean') {
 					// convert string to boolean
-					newAgent[value] = document.getElementById('input' + key).checked.match(/true/i) ? true : false;
+					newAgent[key] = document.getElementById('checkbox' + key).checked;
 				}
 			}
 		}
