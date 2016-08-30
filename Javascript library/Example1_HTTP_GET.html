@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href='bootstrap.min.css' rel='stylesheet' type='text/css'>
+  <script type="text/javascript" src="./askiafield.js"></script>
+	<style>
+		#resultcontainer{
+			border:1px solid black;
+		}
+		button{
+		margin: 5px 0 5px 0;
+		}
+	</style>
+  
+  </head>
+  <body onload="init()">
+    
+	<h1>Example 1 : Using HTTP GET with CCAWebAPI</h1>
+	<h2>Documentation about this API can be found at <a id="doc" href=""></a></h2>
+	
+	<button onclick="CCAWebAPI('SurveyTasks',DEFAULT_AJAX_PARAMS,JSONtoDIV)">Available surveys</button>
+	<button onclick="CCAWebAPI('Agents',DEFAULT_AJAX_PARAMS,JSONtoDIV)">Available agents</button>
+	<button onclick="CCAWebAPI('Lists',DEFAULT_AJAX_PARAMS,JSONtoDIV)">Available Lists</button>
+	<button onclick="CCAWebAPI('GeneralSettings',DEFAULT_AJAX_PARAMS,JSONtoDIV)">CCA Settings</button>
+	<button onclick="CCAWebAPI('Groups',DEFAULT_AJAX_PARAMS,JSONtoDIV)">Groups</button>
+	<button onclick="CCAWebAPI('OutboundGroups',DEFAULT_AJAX_PARAMS,JSONtoDIV)">OutboundGroups</button>
+	<button onclick="CCAWebAPI('WebConnections',DEFAULT_AJAX_PARAMS,JSONtoDIV)">Web Connections</button>
+	
+    <div id="resultcontainer">
+		<div id="loading"></div>
+		<ul id="result"></ul>
+	</div>
+    
+    
+	
+  </body>
+</html>
