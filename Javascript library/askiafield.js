@@ -19,6 +19,13 @@ var CCAURL = 'http://ns7.askia.com:80/ccawebapi/'
 			console.log("error caught");
 		}); 
 	}
+	function JSONtoDIV0(json){
+		//console.log(json);
+		
+							//further proceed with Token
+							document.getElementById('result').innerHTML = "Status : " + json.status + "<br>" + "Status text : " + json.statusText + "<br>" + "Current Authenticity token : " + token;
+							//document.getElementById('result').innerHTML = "Status : " + response.status + "<br>" + "Status text : " + response.statusText + "<br>" + "Current Authenticity token : " + token;
+	}
 	function JSONtoFORM(response){
 		// First, checks if it isn't implemented yet.
 		if (!String.prototype.format) {
@@ -70,14 +77,14 @@ var CCAURL = 'http://ns7.askia.com:80/ccawebapi/'
 		document.getElementById('doc').setAttribute("href",CCAURL);
 		
 		if(document.getElementById('PASS')==null){
-			askiafield.authenticate(JSONtoDIV,{username:'Supervisor',password:'Supervisor'});
+			askiafield.authenticate(JSONtoDIV0,{username:'Supervisor',password:'Supervisor'});
 		}
 	}
 	
 	function signin(){
 		var id = document.getElementById('UID').value;
 		var pass = document.getElementById('PASS').value;
-		askiafield.authenticate(JSONtoDIV,{username:id,password:pass});
+		askiafield.authenticate(JSONtoDIV0,{username:id,password:pass});
 	}
 	function setAgentJSON(){
 		var newAgent = defaultAgentObj;
@@ -93,7 +100,7 @@ var CCAURL = 'http://ns7.askia.com:80/ccawebapi/'
 				}
 			}
 		}	
-		askiafield.createAgent(function(){},newAgent);
+		askiafield.createAgent(JSONtoDIV,newAgent);
 	}
 
 
@@ -119,13 +126,15 @@ var CCAURL = 'http://ns7.askia.com:80/ccawebapi/'
 	function executeGetQuery(APICall,callback){
 		if (cache[APICall]) {
 			console.log('using cache');
+			callback(cache[APICall]);
 		}
 		else {
 			cache[APICall] = (fetch(CCAURL+APICall,{headers: {'Authorization': 'Basic ' + token}}).then(function(response){
 				return response.json();
+				console.log(response.json());
 			}));
+			callback(cache[APICall]);
 		}
-		callback(cache[APICall]);
 	}
 	win.askiafield = {};
     
@@ -144,28 +153,41 @@ var CCAURL = 'http://ns7.askia.com:80/ccawebapi/'
     }
 	
 	function executePostQuery(APICall,body,callback){
-		console.log(body);
-		fetch( CCAURL + APICall, {
-			method:'post',
-			headers:{
-				"Content-Type": "text/json",
-				'Authorization': 'Basic ' + token
-			},
-			body: JSON.stringify(body)
-		})
-		.then(function( response ) {
-			if(response.ok){
-				return response.json().then(function(json){
-					token=json.Response.Token;
-					//further proceed with Token
-					document.getElementById('result').innerHTML = "Status : " + response.status + "<br>" + "Status text : " + response.statusText + "<br>" + "Current Authenticity token : " + token;
-					//document.getElementById('result').innerHTML = "Status : " + response.status + "<br>" + "Status text : " + response.statusText + "<br>" + "Current Authenticity token : " + token;
-				});
-			}
-			else{
-				document.getElementById('result').innerHTML = "Status : " + response.status + "<br>" + "Status text : " + response.statusText;
-			}
-		});
+		if (cache[APICall] && cache[APICall][1]==body) {
+			console.log('using cache');
+			callback(cache[APICall]);
+		}
+		else{
+			fetch( CCAURL + APICall, {
+				method:'post',
+				headers:{
+					"Content-Type": "text/json",
+					'Authorization': 'Basic ' + token
+				},
+				body: JSON.stringify(body)
+				})
+				.then(function( response ) {
+					if(response.ok){
+						return response.json().then(function(json){
+							token=json.Response.Token;
+							cache[APICall]=json;
+							cache[APICall][1]=body;
+							console.log(cache[APICall]);
+							callback(cache[APICall]);	
+						});
+					}
+					else{
+						console.log('KO');
+						return response.json().then(function(json){
+							cache[APICall]=json;
+							cache[APICall][1]=body;
+							console.log(cache[APICall]);
+							callback(cache[APICall]);
+							document.getElementById('result').innerHTML = "Status : " + response.status + "<br>" + "Status text : " + response.statusText;							
+						});
+					}
+				})
+		}
 	}
 		
 		
