@@ -20,13 +20,13 @@
 	<h1>Example 1 : Using HTTP GET with CCAWebAPI</h1>
 	<h2>Documentation about this API can be found at <a id="doc" href=""></a></h2>
 	
-	<button onclick="askiafield.getSurveys(JSONtoDIV)">Available surveys</button>
-	<button onclick="askiafield.getAgents(JSONtoDIV)">Available agents</button>
-	<button onclick="askiafield.getLists(JSONtoDIV)">Available Lists</button>
-	<button onclick="askiafield.getSettings(JSONtoDIV)">CCA Settings</button>
-	<button onclick="askiafield.getGroups(JSONtoDIV)">Groups</button>
-	<button onclick="askiafield.getOutbound(JSONtoDIV)">OutboundGroups</button>
-	<button onclick="askiafield.getWebconnections(JSONtoDIV)">Web Connections</button>
+	<button onclick="askiafield.getSurveys({onSuccess:JSONtoDIV})">Available surveys</button>
+	<button onclick="askiafield.getAgents({onSuccess:JSONtoDIV})">Available agents</button>
+	<button onclick="askiafield.getLists({onSuccess:JSONtoDIV})">Available Lists</button>
+	<button onclick="askiafield.getSettings({onSuccess:JSONtoDIV})">CCA Settings</button>
+	<button onclick="askiafield.getGroups({onSuccess:JSONtoDIV})">Groups</button>
+	<button onclick="askiafield.getOutbound({onSuccess:JSONtoDIV})">OutboundGroups</button>
+	<button onclick="askiafield.getWebconnections({onSuccess:JSONtoDIV})">Web Connections</button>
 	
     <div id="resultcontainer">
 		<div id="loading"></div>
