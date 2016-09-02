@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='bootstrap.min.css' rel='stylesheet' type='text/css'>
+	<style>
+		#resultcontainer{
+			display: block;
+			max-width: 960px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		button{
+		margin: 5px 3px 5px 3px;
+		}
+		.header {			
+			display: block;
+			max-width: 960px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+	</style>  
+</head>
+<body>
+  	<script>
+	(function AskiaFieldAPI(w){
+		
+		var chainObj = {
+			TOKEN: '',
+			CCAURL: "http://ns7.askia.com:80/ccawebapi/",
+			Auth: function(){ return Authenticate.apply(this, arguments) },
+			getObjects: function() { return getObjects.apply(this, arguments) },
+			
+			/* Callback Chaining magic */
+			_resolved: function(){/* Dummy */},
+			_error: function(){/* Dummy */},
+			_catch: function() {/* Dummy */},
+			then: function(resolved, error){
+				/* Promise of last action */
+				chainObj._resolved = resolved;
+				chainObj._error = error;
+				return chainObj;
+			},
+			'catch': function(callback) {
+				chainObj._catch = callback;
+				return chainObj;
+			}
+		};
+		
+		function getObjects(name) {
+			fetch(chainObj.CCAURL + name,
+				{headers: {'Authorization': 'Basic ' + chainObj.TOKEN}}
+			).then(function(response){
+				response.json().then(
+					function(json){
+						if (json.StatusCode === 200) {
+							chainObj._resolved(json.Response);
+						} else {
+							chainObj._error("Could not fetch '" + name + "'. Status code: " + json.StatusCode);
+						}
+					}, 
+					function() { 
+						chainObj._error.apply(this, arguments);
+					}
+				).catch(function(){ 
+					chainObj._catch.apply(this, arguments);
+				});
+			});
+			
+			/* Clean up */
+			chainObj._resolved = function() { /* dummy */ };
+			chainObj._error = function() { /* dummy */};
+			chainObj._catch = function() { /* dummy */};	
+			return chainObj
+		}
+		
+		function Authenticate(user, pass, module){
+			var username = user || 'Supervisor';
+			var password = pass || 'Supervisor';
+			var module = module || 'RecordingManagementTool';
+			
+			fetch(chainObj.CCAURL + 'session', {
+				method: 'post',
+				headers: { "Content-Type": "text/json" },
+				body: JSON.stringify({
+					username: username,
+					password: password,
+					module: module
+				})
+			}).then(function(response) {
+				if (response.ok) {
+					response.json().then(function(json){
+						var Token = json.Response.Token;
+						chainObj.TOKEN = Token;
+						/* TODO check if _resolved exists, if not
+						 * print some logging indicating the error
+						 */
+						//console.log(json);
+						//console.info('Token successfully received ' + Token);
+						chainObj._resolved(Token);
+					}, function(error){
+						//console.error("Could not retrieve JSON from response");
+						//console.error(error);
+						chainObj._error(error);
+					});
+				} else {
+					//console.error("Response on Auth request is NOK");
+					chainObj._error("Fetch response NOK");
+				}
+			}).catch(function(){ 
+				chainObj._catch.apply(this, arguments);
+			});
+			
+			/* Clean up */
+			chainObj._resolved = function() { /* dummy */ };
+			chainObj._error = function() { /* dummy */};
+			chainObj._catch = function() { /* dummy */};
+			return chainObj;
+		}
+		
+		['SurveyTasks', 'Agents', 'Lists', 'GeneralSettings', 'Groups',
+		 'OutboundGroups', 'WebConnections'].forEach(function(name){
+			chainObj['get' + name] = function() { 
+				return getObjects(name)
+			};		
+		});
+		w.AskiaField = chainObj;
+	})(window)
+
+
+
+	</script>	
+  
+	<script>
+		window.onload= function() {
+			var ccawebapi = 'http://ns7.askia.com:80/ccawebapi/';
+			var doc = document.getElementById('doc');
+			AskiaField.CCAURL = ccawebapi;
+	
+			doc.innerHTML = ccawebapi;
+			doc.href = ccawebapi;			
+		}
+		/* Using this the AskiaField Library it is possible utilise the CCA API 
+		 * with concise but effective code.
+		 */
+		function CCAWebAPI(typeOfCall){
+		
+			var loading = document.getElementById('loading');
+			loading.innerHTML = "Loading...";
+			
+			var results = document.getElementById('result');
+			result.innerHTML = "";
+			
+			AskiaField.Auth('Supervisor', 'Supervisor').then(function() {
+				AskiaField['get' + typeOfCall]().then(function(agents){
+				
+					loading.innerHTML = "";					
+					results.innerHTML = agents.reduce(
+						function(prev, curr) {
+							return prev + '<li>' + curr.Name + '</li>';
+						}, '');
+				});
+			});
+		}
+	</script>
+    <div class="well header">
+	<h1>Example 1 : Using HTTP GET with CCAWebAPI</h1>
+	<h2>Documentation about this API can be found at: <a id="doc" href=""></a></h2>
+	
+	<button class="btn" onclick="CCAWebAPI('SurveyTasks')">Available surveys</button>
+	<button class="btn" onclick="CCAWebAPI('Agents')">Available agents</button>
+	<button class="btn" onclick="CCAWebAPI('Lists')">Available Lists</button>
+	<button class="btn" onclick="CCAWebAPI('GeneralSettings')">CCA Settings</button>
+	<button class="btn" onclick="CCAWebAPI('Groups')">Groups</button>
+	<button class="btn" onclick="CCAWebAPI('OutboundGroups')">OutboundGroups</button>
+	<button class="btn" onclick="CCAWebAPI('WebConnections')">Web Connections</button>
+	</div>
+    <div class="well" id="resultcontainer">
+		<div id="loading"></div>
+		<ul id="result"></ul>
+	</div>
+    
+	
+</body>
+</html>
