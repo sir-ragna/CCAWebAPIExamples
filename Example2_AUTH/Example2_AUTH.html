@@ -15,18 +15,7 @@
   
   <script>
 	var CCAURL = 'http://ns7.askia.com:80/ccawebapi/'
-	
-	//this function is a helper to convert a JSON object into a Form data, so that its treated as Form Data in the HTTP POST, rather than Payload.
-	function buildFormBody(obj) {
-		var form = [];
-		for (var key in obj) {
-			if (obj.hasOwnProperty(key)) {
-				form.push(encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]));
-			}
-		}
-		return form.join("&");
-	}
-	
+		
 	function init(){
 		document.getElementById('doc').innerHTML = CCAURL;
 		document.getElementById('doc').setAttribute("href",CCAURL);
@@ -39,9 +28,9 @@
 		fetch( CCAURL + '/session', {
 			method:'post',
 			headers:{
-				"Content-Type": "application/x-www-form-urlencoded"
+				"Content-Type": "text/json"
 			},
-			body: buildFormBody({ 
+			body: JSON.stringify({ 
 				username : uid,
 				password : pass,
 				module   : "RecordingManagementTool",
@@ -72,7 +61,6 @@
 		<input type="password" id="pass" placeholder="password"/>
 		<input type="button" value="Sign in" onclick="authenticate()"/>
 	</form>
-	</head>
     Results : 
 	<div id="resultcontainer">
 		<div id="loading"></div>
