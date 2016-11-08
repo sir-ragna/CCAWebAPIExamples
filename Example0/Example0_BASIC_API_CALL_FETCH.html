@@ -2,65 +2,51 @@
 <html>
   <head>
   <script>
-	function buildFormBody(obj) {
-		var form = [];
-		for (var key in obj) {
-			if (obj.hasOwnProperty(key)) {
-				form.push(encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]));
-			}
-		}
-		return form.join("&");
-	}
-	
     function request0(){
-	var token;
-	fetch( 'http://ns7.askia.com:80/ccawebapi/session', {
-		method:'post',
-		headers:{
-			"Content-Type": "application/x-www-form-urlencoded"
-		},
-		body: buildFormBody({ 
-			username : "Supervisor",
-			password : "Supervisor",
-			module   : "RecordingManagementTool",
-		})
-	})
-	.then(function( response ) {
-		return response.json().then(function(json){
-			token=json.Response.Token;
-			getSurveys();
-		});
+	    var token;
+	    fetch( 'http://ns7.askia.com:80/ccawebapi/session', {
+		    method:'post',
+		    headers:{
+			    "Content-Type": "text/json"
+		    },
+		    body: JSON.stringify({ 
+			    username : "Supervisor",
+			    password : "Supervisor",
+			    module   : "RecordingManagementTool",
+		    })
+	    }).then(function( response ) {
+		    return response.json().then(function(json){
+			    token=json.Response.Token;
+			    getSurveys();
+		    });
 		
-	});
+	    });
 
 		
-	function getSurveys(){
-		fetch('http://ns7.askia.com:80/ccawebapi/SurveyTasks',
-			{
-			url: 'http://ns7.askia.com:80/ccawebapi/SurveyTasks',
-			headers: {'Authorization': 'Basic ' + token}
-			}
-		)
-		.then(function(response){
-			return response.json().then(function(json){
-				for (i = 0; i< json.Response.length; i++){
-					var textnode = document.createTextNode(json.Response[i].Name);
-					var linode = document.createElement("LI");
-					linode.appendChild(textnode);
-					document.getElementById('result').appendChild(linode);
-				}
-			})
-		})
-   }
-
+	    function getSurveys(){
+		    fetch('http://ns7.askia.com:80/ccawebapi/SurveyTasks',
+			    {
+			    url: 'http://ns7.askia.com:80/ccawebapi/SurveyTasks',
+			    headers: {'Authorization': 'Basic ' + token}
+			    }
+		    ).then(function(response){
+			    return response.json().then(function(json){
+				    for (i = 0; i< json.Response.length; i++){
+					    var textnode = document.createTextNode(json.Response[i].Name);
+					    var linode = document.createElement("LI");
+					    linode.appendChild(textnode);
+					    document.getElementById('result').appendChild(linode);
+				    }
+			    })
+		    })
+       }
 	}
     </script>
 	</head>
 
   <body onload="request0()">
-    Available surveys:
+    <p>Available surveys:</p>
     <ul id="result"></ul>
-
 
   </body>
 </html>
